@@ -1,6 +1,8 @@
 defmodule Spike.Server do
   use Task, restart: :permanent
 
+  alias :gen_tcp, as: GenTCP
+
   require Logger
   alias Spike.Command
 
@@ -10,16 +12,16 @@ defmodule Spike.Server do
 
   def accept(port) do
     {:ok, socket} =
-      :gen_tcp.listen(port, [:binary, packet: :line, active: false, reuseaddr: true])
+      GenTCP.listen(port, [:binary, packet: :line, active: false, reuseaddr: true])
 
     Logger.info("Accepting connections on port #{port}")
     loop_acceptor(socket)
   end
 
   defp loop_acceptor(socket) do
-    {:ok, client} = :gen_tcp.accept(socket)
+    {:ok, client} = GenTCP.accept(socket)
     {:ok, pid} = Task.Supervisor.start_child(Spike.TaskSupervisor, fn -> serve(client) end)
-    :ok = :gen_tcp.controlling_process(client, pid)
+    :ok = GenTCP.controlling_process(client, pid)
 
     loop_acceptor(socket)
   end
@@ -35,11 +37,11 @@ defmodule Spike.Server do
   end
 
   defp read_line(socket) do
-    {:ok, data} = :gen_tcp.recv(socket, 0)
+    {:ok, data} = GenTCP.recv(socket, 0)
     data
   end
 
   defp write_line(line, socket) do
-    :gen_tcp.send(socket, line)
+    GenTCP.send(socket, line)
   end
 end
