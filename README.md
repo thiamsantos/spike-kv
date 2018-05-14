@@ -1,6 +1,8 @@
 # Spike
 
-Key-value database powered by elixir.
+[![Build Status](https://travis-ci.com/thiamsantos/spike.svg?branch=master)](https://travis-ci.com/thiamsantos/spike)
+
+> Key-value database powered by elixir.
 
 ## Installation
 
