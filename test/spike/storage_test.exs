@@ -1,15 +1,10 @@
 defmodule Spike.StorageTest do
   use ExUnit.Case, async: true
 
-  setup do
-    start_supervised!(Spike.Storage)
-    :ok
-  end
-
   test "stores values by key" do
-    assert Spike.Storage.get("milk") == nil
+    assert Spike.Storage.get("milk") == {:ok, nil}
 
-    Spike.Storage.set("milk", 3)
-    assert Spike.Storage.get("milk") == 3
+    :ok = Spike.Storage.set("milk", 3)
+    assert Spike.Storage.get("milk") == {:ok, 3}
   end
 end

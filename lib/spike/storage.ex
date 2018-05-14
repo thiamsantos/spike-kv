@@ -10,6 +10,6 @@ defmodule Spike.Storage do
   end
 
   def get(key) do
-    Agent.get(__MODULE__, &Map.get(&1, key))
+    {:ok, Agent.get(__MODULE__, &Map.get(&1, key))}
   end
 end
