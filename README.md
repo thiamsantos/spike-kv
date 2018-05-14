@@ -4,20 +4,35 @@
 
 > Key-value database powered by elixir.
 
-## Installation
+## Usage
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `spike` to your list of dependencies in `mix.exs`:
-
-```elixir
-def deps do
-  [
-    {:spike, "~> 0.1.0"}
-  ]
-end
+```sh
+$ git clone https://github.com/thiamsantos/spike.git
+$ cd spike
+$ mix run --no-halt
 ```
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/spike](https://hexdocs.pm/spike).
+Now in another window open a connection with the tcp socket:
 
+```sh
+$ nc 127.0.0.1 4040 # or telnet 127.0.0.1 4040
+```
+
+### Example
+
+```sh
+SET cool_key awesome
+OK
+GET cool_key
+awesome
+OK
+```
+
+## Available commands
+
+- `SET`. Ex: `SET key value`
+- `GET`. Ex: `GET key`
+
+## License
+
+[Apache License, Version 2.0](LICENSE) © [Thiago Santos](https://github.com/thiamsantos)
