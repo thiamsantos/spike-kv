@@ -1,6 +1,6 @@
 # Spike
 
-**TODO: Add description**
+Key-value database powered by elixir.
 
 ## Installation
 
