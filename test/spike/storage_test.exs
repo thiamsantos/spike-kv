@@ -25,4 +25,9 @@ defmodule Spike.StorageTest do
 
     assert Storage.get(storage, "milk") == {:ok, nil}
   end
+
+  test "ping", %{storage: storage} do
+    assert Storage.ping(storage, "") == {:ok, "PONG"}
+    assert Storage.ping(storage, "hello world") == {:ok, "hello world"}
+  end
 end

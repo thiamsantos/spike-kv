@@ -16,4 +16,7 @@ defmodule Spike.Storage do
   def del(storage, key) do
     Agent.update(storage, &Map.delete(&1, key))
   end
+
+  def ping(_storage, ""), do: {:ok, "PONG"}
+  def ping(_storage, message), do: {:ok, message}
 end

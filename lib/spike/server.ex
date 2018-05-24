@@ -4,7 +4,7 @@ defmodule Spike.Server do
   alias :gen_tcp, as: GenTCP
 
   require Logger
-  alias Spike.Command
+  alias Spike.{Command, Client}
 
   def start_link(_) do
     Task.start_link(__MODULE__, :accept, [4040])
@@ -29,7 +29,7 @@ defmodule Spike.Server do
     socket
     |> read_line()
     |> Command.parse()
-    |> Command.run()
+    |> Client.run()
     |> write_line(socket)
 
     serve(socket)

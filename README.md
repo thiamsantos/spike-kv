@@ -33,6 +33,7 @@ OK
 - `SET`. Ex: `SET key value`
 - `GET`. Ex: `GET key`
 - `DEL`. Ex: `DEL key`
+- `PING`. Ex: `PING hello world`
 
 ## License
 
