@@ -3,32 +3,20 @@ defmodule Spike.Command do
 
   def parse(command) do
     case String.split(command) do
-      ["GET", key] -> {:ok, {:get, key}}
-      ["SET", key, value] -> {:ok, {:set, key, value}}
-      ["DEL", key] -> {:ok, {:del, key}}
-      _ -> {:error, {:unknown_command}}
+      ["GET", key] -> {:ok, %{fun: :get, args: [key]}}
+      ["SET", key, value] -> {:ok, %{fun: :set, args: [key, value]}}
+      ["DEL", key] -> {:ok, %{fun: :del, args: [key]}}
+      _ -> {:error, :unknown_command}
     end
   end
 
-  def run({:ok, {:get, key}}) do
-    Storage.get(Storage, key)
+  def run({:ok, %{fun: fun, args: args}}) do
+    apply(Storage, fun, [Storage | args])
     |> handle_storage_response()
     |> put_line_breaks()
   end
 
-  def run({:ok, {:set, key, value}}) do
-    Storage.set(Storage, key, value)
-    |> handle_storage_response()
-    |> put_line_breaks()
-  end
-
-  def run({:ok, {:del, key}}) do
-    Storage.del(Storage, key)
-    |> handle_storage_response()
-    |> put_line_breaks()
-  end
-
-  def run({:error, {:unknown_command}}) do
+  def run({:error, :unknown_command}) do
     "unknown COMMAND"
     |> put_line_breaks()
   end
