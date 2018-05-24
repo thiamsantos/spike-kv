@@ -11,8 +11,7 @@ defmodule Spike.Server do
   end
 
   def accept(port) do
-    {:ok, socket} =
-      GenTCP.listen(port, [:binary, packet: :line, active: false, reuseaddr: true])
+    {:ok, socket} = GenTCP.listen(port, [:binary, packet: :line, active: false, reuseaddr: true])
 
     Logger.info("Accepting connections on port #{port}")
     loop_acceptor(socket)

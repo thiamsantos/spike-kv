@@ -8,7 +8,7 @@ defmodule Spike.Application do
     children = [
       {Task.Supervisor, name: Spike.TaskSupervisor},
       {Server, []},
-      {Storage, []}
+      {Storage, [name: Storage]}
     ]
 
     opts = [strategy: :one_for_one, name: Spike.Supervisor]

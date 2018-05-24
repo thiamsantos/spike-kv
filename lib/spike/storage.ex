@@ -1,15 +1,19 @@
 defmodule Spike.Storage do
   use Agent
 
-  def start_link(_) do
-    Agent.start_link(fn -> Map.new() end, name: __MODULE__)
+  def start_link(opts) do
+    Agent.start_link(fn -> Map.new() end, opts)
   end
 
-  def set(key, value) do
-    Agent.update(__MODULE__, &Map.put(&1, key, value))
+  def set(storage, key, value) do
+    Agent.update(storage, &Map.put(&1, key, value))
   end
 
-  def get(key) do
-    {:ok, Agent.get(__MODULE__, &Map.get(&1, key))}
+  def get(storage, key) do
+    {:ok, Agent.get(storage, &Map.get(&1, key))}
+  end
+
+  def del(storage, key) do
+    Agent.update(storage, &Map.delete(&1, key))
   end
 end

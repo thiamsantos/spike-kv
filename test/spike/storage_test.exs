@@ -1,10 +1,28 @@
 defmodule Spike.StorageTest do
   use ExUnit.Case, async: true
 
-  test "stores values by key" do
-    assert Spike.Storage.get("milk") == {:ok, nil}
+  alias Spike.Storage
 
-    :ok = Spike.Storage.set("milk", 3)
-    assert Spike.Storage.get("milk") == {:ok, 3}
+  setup do
+    storage = start_supervised!(Storage)
+    %{storage: storage}
+  end
+
+  test "stores values by key", %{storage: storage} do
+    assert Storage.get(storage, "milk") == {:ok, nil}
+
+    :ok = Storage.set(storage, "milk", 3)
+    assert Storage.get(storage, "milk") == {:ok, 3}
+  end
+
+  test "delete keys", %{storage: storage} do
+    assert Storage.get(storage, "milk") == {:ok, nil}
+
+    :ok = Storage.set(storage, "milk", 3)
+    assert Storage.get(storage, "milk") == {:ok, 3}
+
+    :ok = Storage.del(storage, "milk")
+
+    assert Storage.get(storage, "milk") == {:ok, nil}
   end
 end

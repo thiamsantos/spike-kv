@@ -27,7 +27,7 @@ defmodule Spike.CommandTest do
 
     test "unknown command if missing arguments" do
       actual = Command.parse("SET key\r\n")
-      expected = {:error, {:unknown_command, "SET key\r\n"}}
+      expected = {:error, {:unknown_command}}
 
       assert actual == expected
     end
