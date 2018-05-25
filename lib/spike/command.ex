@@ -8,6 +8,7 @@ defmodule Spike.Command do
       ["SET", key, value] -> {:ok, create(:set, [key, value])}
       ["DEL", key] -> {:ok, create(:del, [key])}
       ["PING" | message] -> {:ok, create(:ping, [Enum.join(message, " ")])}
+      ["EXISTS", key] -> {:ok, create(:exists?, [key])}
       _ -> {:error, :unknown_command}
     end
   end

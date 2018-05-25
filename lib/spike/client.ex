@@ -16,6 +16,13 @@ defmodule Spike.Client do
     "NOT FOUND"
   end
 
+  defp handle_storage_response({:ok, value}) when is_boolean(value) do
+    value
+    |> parse_boolean()
+    |> put_line_breaks()
+    |> Kernel.<>("OK")
+  end
+
   defp handle_storage_response({:ok, value}) do
     put_line_breaks("#{value}") <> "OK"
   end
@@ -27,4 +34,7 @@ defmodule Spike.Client do
   defp put_line_breaks(msg) do
     msg <> "\r\n"
   end
+
+  defp parse_boolean(true), do: "1"
+  defp parse_boolean(false), do: "0"
 end

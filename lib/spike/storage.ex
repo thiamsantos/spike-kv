@@ -19,4 +19,8 @@ defmodule Spike.Storage do
 
   def ping(_storage, ""), do: {:ok, "PONG"}
   def ping(_storage, message), do: {:ok, message}
+
+  def exists?(storage, key) do
+    {:ok, Agent.get(storage, &Map.has_key?(&1, key))}
+  end
 end

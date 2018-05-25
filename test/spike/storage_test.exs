@@ -30,4 +30,11 @@ defmodule Spike.StorageTest do
     assert Storage.ping(storage, "") == {:ok, "PONG"}
     assert Storage.ping(storage, "hello world") == {:ok, "hello world"}
   end
+
+  test "exists", %{storage: storage} do
+    assert Storage.exists?(storage, "milk") == {:ok, false}
+
+    :ok = Storage.set(storage, "milk", 3)
+    assert Storage.exists?(storage, "milk") == {:ok, true}
+  end
 end

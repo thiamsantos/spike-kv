@@ -30,6 +30,18 @@ defmodule Spike.ServerTest do
     assert send_and_recv(socket, "") == "OK\r\n"
   end
 
+  test "exists", %{socket: socket} do
+    assert send_and_recv(socket, "SET eggs 3\r\n") == "OK\r\n"
+
+    assert send_and_recv(socket, "EXISTS eggs\r\n") == "1\r\n"
+    assert send_and_recv(socket, "") == "OK\r\n"
+
+    assert send_and_recv(socket, "DEL eggs\r\n") == "OK\r\n"
+
+    assert send_and_recv(socket, "EXISTS eggs\r\n") == "0\r\n"
+    assert send_and_recv(socket, "") == "OK\r\n"
+  end
+
   defp send_and_recv(socket, command) do
     :ok = :gen_tcp.send(socket, command)
     {:ok, data} = :gen_tcp.recv(socket, 0, 1000)

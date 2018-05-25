@@ -34,6 +34,7 @@ OK
 - `GET`. Ex: `GET key`
 - `DEL`. Ex: `DEL key`
 - `PING`. Ex: `PING hello world`
+- `EXISTS`. Ex: `EXISTS key`
 
 ## License
 

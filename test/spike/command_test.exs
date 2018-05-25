@@ -59,5 +59,12 @@ defmodule Spike.CommandTest do
 
       assert actual == expected
     end
+
+    test "exists command" do
+      actual = Command.parse("EXISTS hello\r\n")
+      expected = {:ok, %Command{fun: :exists?, args: ["hello"]}}
+
+      assert actual == expected
+    end
   end
 end
