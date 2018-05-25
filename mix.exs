@@ -15,7 +15,7 @@ defmodule Spike.MixProject do
   def application do
     [
       extra_applications: [:logger],
-      mod: {Spike.Application, []}
+      mod: {Spike, []}
     ]
   end
 
