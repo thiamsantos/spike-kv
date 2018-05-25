@@ -1,13 +1,13 @@
 defmodule Spike do
   use Application
 
-  alias Spike.{Storage, Server}
+  alias Spike.{Storage, Socket}
   alias Spike.Storage
 
   def start(_type, _args) do
     children = [
-      {Task.Supervisor, name: Spike.TaskSupervisor},
-      {Server, []},
+      {Task.Supervisor, name: Spike.ServerSupervisor},
+      {Socket, []},
       {Storage, [name: Storage]}
     ]
 

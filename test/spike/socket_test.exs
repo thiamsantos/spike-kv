@@ -1,4 +1,4 @@
-defmodule Spike.ServerTest do
+defmodule Spike.SocketTest do
   use ExUnit.Case
 
   @moduletag :capture_log
