@@ -1,5 +1,5 @@
 defmodule Spike.SocketTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
 
   @moduletag :capture_log
 
