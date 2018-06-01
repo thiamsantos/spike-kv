@@ -11,6 +11,20 @@ defmodule Spike.CommandTest do
       assert actual == expected
     end
 
+    test "set command with expiration time" do
+      actual = Command.parse("SET key value 10\r\n")
+      expected = {:ok, %Command{fun: :set, args: ["key", "value", 10]}}
+
+      assert actual == expected
+    end
+
+    test "set command with invalid time" do
+      actual = Command.parse("SET key value invalid_time\r\n")
+      expected = {:error, :unknown_command}
+
+      assert actual == expected
+    end
+
     test "get commands" do
       actual = Command.parse("GET key\r\n")
       expected = {:ok, %Command{fun: :get, args: ["key"]}}
