@@ -47,4 +47,13 @@ defmodule Spike.StorageTest do
     :ok = Storage.set(storage, "milk", 3)
     assert Storage.exists?(storage, "milk") == {:ok, true}
   end
+
+  test "exists with expiration", %{storage: storage} do
+    now = 1
+    assert Storage.exists?(storage, "milk") == {:ok, false}
+
+    :ok = Storage.set(storage, "milk", 3, 10, now)
+    assert Storage.exists?(storage, "milk", now + 9) == {:ok, true}
+    assert Storage.exists?(storage, "milk", now + 10) == {:ok, false}
+  end
 end
