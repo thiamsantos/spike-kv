@@ -45,24 +45,15 @@ defmodule Spike.Runner do
     |> tokenize_message()
   end
 
-  defp tokenize_message(message) do
-    ":" <> message
-  end
+  defp tokenize_message(message), do: ":" <> message
 
-  defp success_response("") do
-    ":OK"
-  end
-  defp success_response(content) do
-    ":OK " <> content
-  end
+  defp success_response(""), do: ":OK"
 
-  defp error_response(content) do
-    ":ERROR " <> content
-  end
+  defp success_response(content), do: ":OK " <> content
 
-  defp put_line_breaks(msg) do
-    msg <> "\r\n"
-  end
+  defp error_response(content), do: ":ERROR " <> content
+
+  defp put_line_breaks(msg), do: msg <> "\r\n"
 
   defp parse_boolean(true), do: "+1"
   defp parse_boolean(false), do: "+0"

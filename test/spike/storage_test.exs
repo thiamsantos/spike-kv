@@ -59,4 +59,21 @@ defmodule Spike.StorageTest do
     assert Client.exists?(storage, now + 9, "milk") == {:ok, true}
     assert Client.exists?(storage, now + 10, "milk") == {:ok, false}
   end
+
+  test "getset", %{storage: storage, now: now} do
+    assert Client.get(storage, now, "milk") == {:ok, nil}
+
+    :ok = Client.set(storage, now, "milk", 3)
+    assert Client.getset(storage, now, "milk", 4) == {:ok, 3}
+    assert Client.get(storage, now, "milk") == {:ok, 4}
+  end
+
+  test "getset with expiration", %{storage: storage, now: now} do
+    assert Client.get(storage, now, "milk") == {:ok, nil}
+
+    :ok = Client.set(storage, now, "milk", 3)
+    assert Client.getset(storage, now, "milk", 4, 10) == {:ok, 3}
+    assert Client.get(storage, now + 9, "milk") == {:ok, 4}
+    assert Client.get(storage, now + 10, "milk") == {:ok, nil}
+  end
 end

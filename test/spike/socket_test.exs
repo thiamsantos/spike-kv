@@ -37,7 +37,6 @@ defmodule Spike.SocketTest do
 
   test "unknown command", %{socket: socket} do
     assert send_and_recv(socket, "SET key\r\n") == ":ERROR :UNKNOWN_COMMAND\r\n"
-
   end
 
   defp send_and_recv(socket, command) do

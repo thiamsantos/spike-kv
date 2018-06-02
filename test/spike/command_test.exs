@@ -80,5 +80,19 @@ defmodule Spike.CommandTest do
 
       assert actual == expected
     end
+
+    test "getset command" do
+      actual = Command.parse("GETSET key value\r\n")
+      expected = {:ok, %Command{fun: :getset, args: ["key", "value"]}}
+
+      assert actual == expected
+    end
+
+    test "getset command with expiration" do
+      actual = Command.parse("GETSET key value 15\r\n")
+      expected = {:ok, %Command{fun: :getset, args: ["key", "value", 15]}}
+
+      assert actual == expected
+    end
   end
 end

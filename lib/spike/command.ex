@@ -13,6 +13,12 @@ defmodule Spike.Command do
       ["SET", key, value, expiration] ->
         parse_command_with_expiration(:set, [key, value], expiration)
 
+      ["GETSET", key, value] ->
+        {:ok, create(:getset, [key, value])}
+
+      ["GETSET", key, value, expiration] ->
+        parse_command_with_expiration(:getset, [key, value], expiration)
+
       ["DEL", key] ->
         {:ok, create(:del, [key])}
 

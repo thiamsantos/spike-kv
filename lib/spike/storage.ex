@@ -44,6 +44,34 @@ defmodule Spike.Storage do
     end
   end
 
+  def handle_call({:getset, key, value, now}, _from, table) do
+    old_value =
+      case find(table, key, now) do
+        {:ok, value} ->
+          value
+
+        :error ->
+          nil
+      end
+
+    true = :ets.insert(table, {key, value})
+    {:reply, old_value, table}
+  end
+
+  def handle_call({:getset, key, value, expiration, inserted_at}, _from, table) do
+    old_value =
+      case find(table, key, inserted_at) do
+        {:ok, value} ->
+          value
+
+        :error ->
+          nil
+      end
+
+    true = :ets.insert(table, {key, value, expiration, inserted_at})
+    {:reply, old_value, table}
+  end
+
   defp find(table, key, now) do
     case :ets.lookup(table, key) do
       [{^key, value, expiration, inserted_at}] ->

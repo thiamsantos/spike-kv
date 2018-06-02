@@ -11,6 +11,14 @@ defmodule Spike.Client do
     {:ok, GenServer.call(storage, {:get, key, now})}
   end
 
+  def getset(storage, now, key, value) do
+    {:ok, GenServer.call(storage, {:getset, key, value, now})}
+  end
+
+  def getset(storage, now, key, value, expiration) do
+    {:ok, GenServer.call(storage, {:getset, key, value, expiration, now})}
+  end
+
   def del(storage, _now, key) do
     GenServer.call(storage, {:del, key})
   end
