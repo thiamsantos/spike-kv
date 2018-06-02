@@ -22,10 +22,9 @@ $ nc 127.0.0.1 4040 # or telnet 127.0.0.1 4040
 
 ```sh
 SET cool_key awesome
-OK
+:OK
 GET cool_key
-awesome
-OK
+:OK $7 awesome
 ```
 
 ## Available commands
