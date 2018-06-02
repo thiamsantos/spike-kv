@@ -9,17 +9,17 @@ defmodule Spike.Storage do
     {:ok, :ets.new(:storage, [:protected, read_concurrency: true])}
   end
 
-  def handle_call({:set, key, value}, _from, table) do
+  def handle_call({:set, _now, key, value}, _from, table) do
     true = :ets.insert(table, {key, value})
     {:reply, :ok, table}
   end
 
-  def handle_call({:set, key, value, expiration, inserted_at}, _from, table) do
-    true = :ets.insert(table, {key, value, expiration, inserted_at})
+  def handle_call({:set, now, key, value, expiration}, _from, table) do
+    true = :ets.insert(table, {key, value, expiration, now})
     {:reply, :ok, table}
   end
 
-  def handle_call({:get, key, now}, _from, table) do
+  def handle_call({:get, now, key}, _from, table) do
     case find(table, key, now) do
       {:ok, value} ->
         {:reply, value, table}
@@ -29,12 +29,12 @@ defmodule Spike.Storage do
     end
   end
 
-  def handle_call({:del, key}, _from, table) do
+  def handle_call({:del, _now, key}, _from, table) do
     true = :ets.delete(table, key)
     {:reply, :ok, table}
   end
 
-  def handle_call({:exists?, key, now}, _from, table) do
+  def handle_call({:exists?, now, key}, _from, table) do
     case find(table, key, now) do
       {:ok, _value} ->
         {:reply, true, table}
@@ -44,7 +44,7 @@ defmodule Spike.Storage do
     end
   end
 
-  def handle_call({:getset, key, value, now}, _from, table) do
+  def handle_call({:getset, now, key, value}, _from, table) do
     old_value =
       case find(table, key, now) do
         {:ok, value} ->
@@ -58,9 +58,9 @@ defmodule Spike.Storage do
     {:reply, old_value, table}
   end
 
-  def handle_call({:getset, key, value, expiration, inserted_at}, _from, table) do
+  def handle_call({:getset, now, key, value, expiration}, _from, table) do
     old_value =
-      case find(table, key, inserted_at) do
+      case find(table, key, now) do
         {:ok, value} ->
           value
 
@@ -68,7 +68,7 @@ defmodule Spike.Storage do
           nil
       end
 
-    true = :ets.insert(table, {key, value, expiration, inserted_at})
+    true = :ets.insert(table, {key, value, expiration, now})
     {:reply, old_value, table}
   end
 
