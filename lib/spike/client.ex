@@ -1,40 +1,24 @@
 defmodule Spike.Client do
-  alias Spike.{Command, Storage}
-
-  def run({:ok, %Command{fun: fun, args: args}}) do
-    apply(Storage, fun, [Storage | args])
-    |> handle_storage_response()
-    |> put_line_breaks()
+  def set(storage, key, value) do
+    GenServer.call(storage, {:set, key, value})
   end
 
-  def run({:error, :unknown_command}) do
-    "unknown COMMAND"
-    |> put_line_breaks()
+  def set(storage, key, value, expiration, now \\ :os.system_time(:seconds)) do
+    GenServer.call(storage, {:set, key, value, expiration, now})
   end
 
-  defp handle_storage_response({:ok, nil}) do
-    "NOT FOUND"
+  def get(storage, key, now \\ :os.system_time(:seconds)) do
+    {:ok, GenServer.call(storage, {:get, key, now})}
   end
 
-  defp handle_storage_response({:ok, value}) when is_boolean(value) do
-    value
-    |> parse_boolean()
-    |> put_line_breaks()
-    |> Kernel.<>("OK")
+  def del(storage, key) do
+    GenServer.call(storage, {:del, key})
   end
 
-  defp handle_storage_response({:ok, value}) do
-    put_line_breaks("#{value}") <> "OK"
-  end
+  def ping(_storage, ""), do: {:ok, "PONG"}
+  def ping(_storage, message), do: {:ok, message}
 
-  defp handle_storage_response(:ok) do
-    "OK"
+  def exists?(storage, key, now \\ :os.system_time(:seconds)) do
+    {:ok, GenServer.call(storage, {:exists?, key, now})}
   end
-
-  defp put_line_breaks(msg) do
-    msg <> "\r\n"
-  end
-
-  defp parse_boolean(true), do: "1"
-  defp parse_boolean(false), do: "0"
 end

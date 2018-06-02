@@ -4,13 +4,26 @@ defmodule Spike.Command do
 
   def parse(command) do
     case String.split(command) do
-      ["GET", key] -> {:ok, create(:get, [key])}
-      ["SET", key, value] -> {:ok, create(:set, [key, value])}
-      ["SET", key, value, expiration] -> parse_command_with_expiration(:set, [key, value], expiration)
-      ["DEL", key] -> {:ok, create(:del, [key])}
-      ["PING" | message] -> {:ok, create(:ping, [Enum.join(message, " ")])}
-      ["EXISTS", key] -> {:ok, create(:exists?, [key])}
-      _ -> {:error, :unknown_command}
+      ["GET", key] ->
+        {:ok, create(:get, [key])}
+
+      ["SET", key, value] ->
+        {:ok, create(:set, [key, value])}
+
+      ["SET", key, value, expiration] ->
+        parse_command_with_expiration(:set, [key, value], expiration)
+
+      ["DEL", key] ->
+        {:ok, create(:del, [key])}
+
+      ["PING" | message] ->
+        {:ok, create(:ping, [Enum.join(message, " ")])}
+
+      ["EXISTS", key] ->
+        {:ok, create(:exists?, [key])}
+
+      _ ->
+        {:error, :unknown_command}
     end
   end
 
@@ -18,6 +31,7 @@ defmodule Spike.Command do
     case parse_expiration(expiration) do
       expiration_time when is_integer(expiration_time) ->
         {:ok, create(fun, args ++ [expiration_time])}
+
       :error ->
         {:error, :unknown_command}
     end

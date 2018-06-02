@@ -1,36 +1,9 @@
 defmodule Spike.Storage do
   use GenServer
 
-  # Client
-
   def start_link(opts) do
     GenServer.start_link(__MODULE__, [], opts)
   end
-
-  def set(storage, key, value) do
-    GenServer.call(storage, {:set, key, value})
-  end
-
-  def set(storage, key, value, expiration, now \\ :os.system_time(:seconds)) do
-    GenServer.call(storage, {:set, key, value, expiration, now})
-  end
-
-  def get(storage, key, now \\ :os.system_time(:seconds)) do
-    {:ok, GenServer.call(storage, {:get, key, now})}
-  end
-
-  def del(storage, key) do
-    GenServer.call(storage, {:del, key})
-  end
-
-  def ping(_storage, ""), do: {:ok, "PONG"}
-  def ping(_storage, message), do: {:ok, message}
-
-  def exists?(storage, key, now \\ :os.system_time(:seconds)) do
-    {:ok, GenServer.call(storage, {:exists?, key, now})}
-  end
-
-  # Server (callbacks)
 
   def init(_) do
     {:ok, :ets.new(:storage, [:protected, read_concurrency: true])}
@@ -73,9 +46,14 @@ defmodule Spike.Storage do
 
   defp find(table, key, now) do
     case :ets.lookup(table, key) do
-      [{^key, value, expiration, inserted_at}] -> lazy_expire_or_return(table, key, value, expiration, inserted_at, now)
-      [{^key, value}] -> {:ok, value}
-      [] -> :error
+      [{^key, value, expiration, inserted_at}] ->
+        lazy_expire_or_return(table, key, value, expiration, inserted_at, now)
+
+      [{^key, value}] ->
+        {:ok, value}
+
+      [] ->
+        :error
     end
   end
 
