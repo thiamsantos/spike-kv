@@ -2,7 +2,7 @@ defmodule Spike.Runner do
   alias Spike.{Command, Client, Storage}
 
   def run({:ok, %Command{fun: fun, args: args}}) do
-    apply(Client, fun, [Storage | args])
+    apply(Client, fun, [Storage | [:os.system_time(:seconds) | args]])
     |> handle_storage_response()
     |> put_line_breaks()
   end
