@@ -1,8 +1,10 @@
 defmodule Spike.Runner do
   alias Spike.{Command, Client, Storage}
 
+  @current_time Application.get_env(:spike, :current_time)
+
   def run({:ok, %Command{fun: fun, args: args}}) do
-    apply(Client, fun, [Storage | [:os.system_time(:seconds) | args]])
+    apply(Client, fun, [Storage | [@current_time.get_timestamp() | args]])
     |> handle_storage_response()
     |> put_line_breaks()
   end

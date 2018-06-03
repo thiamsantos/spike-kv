@@ -1,0 +1,3 @@
+%{
+  "mox": {:hex, :mox, "0.3.2", "3b9b8364fd4f28628139de701d97c636b27a8f925f57a8d5a1b85fbd620dad3a", [:mix], [], "hexpm"},
+}
