@@ -28,6 +28,9 @@ defmodule Spike.Command do
       ["EXISTS", key] ->
         {:ok, create(:exists?, [key])}
 
+      ["TTL", key] ->
+        {:ok, create(:ttl, [key])}
+
       _ ->
         {:error, :unknown_command}
     end

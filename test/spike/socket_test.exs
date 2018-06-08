@@ -50,9 +50,21 @@ defmodule Spike.SocketTest do
     stub(CurrentTimeMock, :get_timestamp, fn -> 1 end)
 
     assert send_and_recv(socket, "SET eggs 3\r\n") == ":OK\r\n"
-    assert send_and_recv(socket, "EXISTS eggs\r\n") == ":OK +1\r\n"
+    assert send_and_recv(socket, "EXISTS eggs\r\n") == ":OK =1\r\n"
     assert send_and_recv(socket, "DEL eggs\r\n") == ":OK\r\n"
-    assert send_and_recv(socket, "EXISTS eggs\r\n") == ":OK +0\r\n"
+    assert send_and_recv(socket, "EXISTS eggs\r\n") == ":OK =0\r\n"
+  end
+
+  test "ttl", %{socket: socket} do
+    stub(CurrentTimeMock, :get_timestamp, fn -> 1 end)
+
+    assert send_and_recv(socket, "TTL key\r\n") == ":ERROR +2\r\n"
+
+    assert send_and_recv(socket, "SET key value 10\r\n") == ":OK\r\n"
+    assert send_and_recv(socket, "TTL key\r\n") == ":OK +10\r\n"
+
+    assert send_and_recv(socket, "SET key2 value\r\n") == ":OK\r\n"
+    assert send_and_recv(socket, "TTL key2\r\n") == ":ERROR +1\r\n"
   end
 
   test "unknown command", %{socket: socket} do

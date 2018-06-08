@@ -27,6 +27,10 @@ defmodule Spike.Client do
     {:ok, GenServer.call(storage, {:exists?, now, key})}
   end
 
+  def ttl(storage, now, key) do
+    GenServer.call(storage, {:ttl, now, key})
+  end
+
   def ping(_storage, _now, ""), do: {:ok, "PONG"}
   def ping(_storage, _now, message), do: {:ok, message}
 end

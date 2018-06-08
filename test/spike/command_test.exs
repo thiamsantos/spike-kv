@@ -94,5 +94,12 @@ defmodule Spike.CommandTest do
 
       assert actual == expected
     end
+
+    test "ttl command" do
+      actual = Command.parse("TTL key\r\n")
+      expected = {:ok, %Command{fun: :ttl, args: ["key"]}}
+
+      assert actual == expected
+    end
   end
 end

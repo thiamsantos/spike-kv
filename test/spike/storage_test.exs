@@ -76,4 +76,14 @@ defmodule Spike.StorageTest do
     assert Client.get(storage, now + 9, "milk") == {:ok, 4}
     assert Client.get(storage, now + 10, "milk") == {:ok, nil}
   end
+
+  test "ttl", %{storage: storage, now: now} do
+    assert Client.ttl(storage, now, "milk") == {:error, 2}
+
+    :ok = Client.set(storage, now, "milk", 3, 10)
+    assert Client.ttl(storage, now, "milk") == {:ok, 10}
+
+    :ok = Client.set(storage, now, "basket", "eggs")
+    assert Client.ttl(storage, now, "basket") == {:error, 1}
+  end
 end

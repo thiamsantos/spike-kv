@@ -72,10 +72,26 @@ defmodule Spike.Storage do
     {:reply, old_value, table}
   end
 
+  def handle_call({:ttl, now, key}, _from, table) do
+    response =
+      case :ets.lookup(table, key) do
+        [{^key, _value, expiration, inserted_at}] ->
+          lazy_expire_or_return_ttl(table, key, expiration, inserted_at, now)
+
+        [{^key, _value}] ->
+          {:error, 1}
+
+        [] ->
+          {:error, 2}
+      end
+
+    {:reply, response, table}
+  end
+
   defp find(table, key, now) do
     case :ets.lookup(table, key) do
       [{^key, value, expiration, inserted_at}] ->
-        lazy_expire_or_return(table, key, value, expiration, inserted_at, now)
+        lazy_expire_or_return_value(table, key, value, expiration, inserted_at, now)
 
       [{^key, value}] ->
         {:ok, value}
@@ -85,12 +101,26 @@ defmodule Spike.Storage do
     end
   end
 
-  defp lazy_expire_or_return(table, key, value, expiration, inserted_at, now) do
-    if expiration + inserted_at > now do
-      {:ok, value}
-    else
+  defp lazy_expire_or_return_value(table, key, value, expiration, inserted_at, now) do
+    if expired?(now, expiration, inserted_at) do
       true = :ets.delete(table, key)
       :error
+    else
+      {:ok, value}
     end
+  end
+
+  defp lazy_expire_or_return_ttl(table, key, expiration, inserted_at, now) do
+    if expired?(now, expiration, inserted_at) do
+      true = :ets.delete(table, key)
+      {:error, 2}
+    else
+      ttl = inserted_at + expiration - now
+      {:ok, ttl}
+    end
+  end
+
+  defp expired?(now, expiration, inserted_at) do
+    now >= expiration + inserted_at
   end
 end

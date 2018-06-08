@@ -22,6 +22,12 @@ defmodule Spike.Runner do
     |> success_response()
   end
 
+  defp handle_storage_response({:ok, value}) when is_integer(value) do
+    value
+    |> integer_reply()
+    |> success_response()
+  end
+
   defp handle_storage_response({:ok, value}) do
     value
     |> parse_text_message()
@@ -30,6 +36,12 @@ defmodule Spike.Runner do
 
   defp handle_storage_response(:ok) do
     success_response("")
+  end
+
+  defp handle_storage_response({:error, value}) when is_integer(value) do
+    value
+    |> integer_reply()
+    |> error_response()
   end
 
   defp parse_text_message(nil) do
@@ -47,6 +59,10 @@ defmodule Spike.Runner do
     |> tokenize_message()
   end
 
+  defp integer_reply(num) do
+    "+#{num}"
+  end
+
   defp tokenize_message(message), do: ":" <> message
 
   defp success_response(""), do: ":OK"
@@ -57,6 +73,6 @@ defmodule Spike.Runner do
 
   defp put_line_breaks(msg), do: msg <> "\r\n"
 
-  defp parse_boolean(true), do: "+1"
-  defp parse_boolean(false), do: "+0"
+  defp parse_boolean(true), do: "=1"
+  defp parse_boolean(false), do: "=0"
 end
