@@ -31,6 +31,10 @@ defmodule Spike.Client do
     GenServer.call(storage, {:ttl, now, key})
   end
 
+  def rename(storage, now, oldkey, newkey) do
+    GenServer.call(storage, {:rename, now, oldkey, newkey})
+  end
+
   def ping(_storage, _now, ""), do: {:ok, "PONG"}
   def ping(_storage, _now, message), do: {:ok, message}
 end

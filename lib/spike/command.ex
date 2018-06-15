@@ -31,6 +31,9 @@ defmodule Spike.Command do
       ["TTL", key] ->
         {:ok, create(:ttl, [key])}
 
+      ["RENAME", oldkey, newkey] ->
+        {:ok, create(:rename, [oldkey, newkey])}
+
       _ ->
         {:error, :unknown_command}
     end

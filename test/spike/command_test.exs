@@ -101,5 +101,12 @@ defmodule Spike.CommandTest do
 
       assert actual == expected
     end
+
+    test "rename command" do
+      actual = Command.parse("RENAME oldkey newkey\r\n")
+      expected = {:ok, %Command{fun: :rename, args: ["oldkey", "newkey"]}}
+
+      assert actual == expected
+    end
   end
 end

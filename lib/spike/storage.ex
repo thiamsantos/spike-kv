@@ -88,6 +88,42 @@ defmodule Spike.Storage do
     {:reply, response, table}
   end
 
+  def handle_call({:rename, now, oldkey, newkey}, _from, table) do
+    response =
+      case :ets.lookup(table, oldkey) do
+        [{^oldkey, value, expiration, inserted_at}] ->
+          if expired?(now, expiration, inserted_at) do
+            :error
+          else
+            {newkey, value, expiration, inserted_at}
+          end
+
+        [{^oldkey, value}] ->
+          {newkey, value}
+
+        [] ->
+          :error
+      end
+
+    true = :ets.delete(table, oldkey)
+
+    reply =
+      case response do
+        {key, value} ->
+          true = :ets.insert(table, {key, value})
+          :ok
+
+        {key, value, expiration, now} ->
+          true = :ets.insert(table, {key, value, expiration, now})
+          :ok
+
+        :error ->
+          :error
+      end
+
+    {:reply, reply, table}
+  end
+
   defp find(table, key, now) do
     case :ets.lookup(table, key) do
       [{^key, value, expiration, inserted_at}] ->

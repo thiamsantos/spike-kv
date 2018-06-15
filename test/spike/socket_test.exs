@@ -67,6 +67,17 @@ defmodule Spike.SocketTest do
     assert send_and_recv(socket, "TTL key2\r\n") == ":ERROR +1\r\n"
   end
 
+  test "rename", %{socket: socket} do
+    stub(CurrentTimeMock, :get_timestamp, fn -> 1 end)
+
+    assert send_and_recv(socket, "RENAME oldkey newkey\r\n") == ":ERROR\r\n"
+    assert send_and_recv(socket, "SET oldkey value 10\r\n") == ":OK\r\n"
+    assert send_and_recv(socket, "RENAME oldkey newkey\r\n")
+    assert send_and_recv(socket, "TTL newkey\r\n") == ":OK +10\r\n"
+    assert send_and_recv(socket, "GET newkey\r\n") == ":OK $5 value\r\n"
+    assert send_and_recv(socket, "EXISTS oldkey\r\n") == ":OK =0\r\n"
+  end
+
   test "unknown command", %{socket: socket} do
     assert send_and_recv(socket, "SET key\r\n") == ":ERROR :UNKNOWN_COMMAND\r\n"
   end

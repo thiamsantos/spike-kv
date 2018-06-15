@@ -44,6 +44,10 @@ defmodule Spike.Runner do
     |> error_response()
   end
 
+  defp handle_storage_response(:error) do
+    error_response()
+  end
+
   defp parse_text_message(nil) do
     "$0"
   end
@@ -69,6 +73,7 @@ defmodule Spike.Runner do
 
   defp success_response(content), do: ":OK " <> content
 
+  defp error_response, do: ":ERROR"
   defp error_response(content), do: ":ERROR " <> content
 
   defp put_line_breaks(msg), do: msg <> "\r\n"
