@@ -88,6 +88,10 @@ defmodule Spike.Storage do
     {:reply, response, table}
   end
 
+  def handle_call({:ping, message}, _from, table) do
+    {:reply, {:ok, message}, table}
+  end
+
   def handle_call({:rename, now, oldkey, newkey}, _from, table) do
     response =
       case :ets.lookup(table, oldkey) do

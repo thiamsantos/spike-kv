@@ -1,19 +1,20 @@
 defmodule Spike.ParserTest do
   use ExUnit.Case, async: true
 
-  alias Spike.{Parser, Command}
+  alias Spike.Parser
+  alias Spike.Command.{Get, Set, Del, Exists, Ping, Getset, Rename, Ttl}
 
   describe "parse/1" do
     test "set commands" do
       actual = Parser.parse("SET key value\r\n")
-      expected = {:ok, %Command{fun: :set, args: ["key", "value"]}}
+      expected = {:ok, %Set{key: "key", value: "value"}}
 
       assert actual == expected
     end
 
     test "set command with expiration time" do
       actual = Parser.parse("SET key value 10\r\n")
-      expected = {:ok, %Command{fun: :set, args: ["key", "value", 10]}}
+      expected = {:ok, %Set{key: "key", value: "value", expiration: 10}}
 
       assert actual == expected
     end
@@ -27,14 +28,14 @@ defmodule Spike.ParserTest do
 
     test "get commands" do
       actual = Parser.parse("GET key\r\n")
-      expected = {:ok, %Command{fun: :get, args: ["key"]}}
+      expected = {:ok, %Get{key: "key"}}
 
       assert actual == expected
     end
 
     test "lf line breaks" do
       actual = Parser.parse("GET key\n")
-      expected = {:ok, %Command{fun: :get, args: ["key"]}}
+      expected = {:ok, %Get{key: "key"}}
 
       assert actual == expected
     end
@@ -48,63 +49,63 @@ defmodule Spike.ParserTest do
 
     test "del commands" do
       actual = Parser.parse("DEL key\r\n")
-      expected = {:ok, %Command{fun: :del, args: ["key"]}}
+      expected = {:ok, %Del{key: "key"}}
 
       assert actual == expected
     end
 
     test "ping commmand" do
       actual = Parser.parse("PING something\r\n")
-      expected = {:ok, %Command{fun: :ping, args: ["something"]}}
+      expected = {:ok, %Ping{message: "something"}}
 
       assert actual == expected
     end
 
     test "ping without arguments" do
       actual = Parser.parse("PING\r\n")
-      expected = {:ok, %Command{fun: :ping, args: [""]}}
+      expected = {:ok, %Ping{message: "PONG"}}
 
       assert actual == expected
     end
 
     test "ping with more than one argument" do
       actual = Parser.parse("PING hello world\r\n")
-      expected = {:ok, %Command{fun: :ping, args: ["hello world"]}}
+      expected = {:ok, %Ping{message: "hello world"}}
 
       assert actual == expected
     end
 
     test "exists command" do
       actual = Parser.parse("EXISTS hello\r\n")
-      expected = {:ok, %Command{fun: :exists?, args: ["hello"]}}
+      expected = {:ok, %Exists{key: "hello"}}
 
       assert actual == expected
     end
 
     test "getset command" do
       actual = Parser.parse("GETSET key value\r\n")
-      expected = {:ok, %Command{fun: :getset, args: ["key", "value"]}}
+      expected = {:ok, %Getset{key: "key", value: "value"}}
 
       assert actual == expected
     end
 
     test "getset command with expiration" do
       actual = Parser.parse("GETSET key value 15\r\n")
-      expected = {:ok, %Command{fun: :getset, args: ["key", "value", 15]}}
+      expected = {:ok, %Getset{key: "key", value: "value", expiration: 15}}
 
       assert actual == expected
     end
 
     test "ttl command" do
       actual = Parser.parse("TTL key\r\n")
-      expected = {:ok, %Command{fun: :ttl, args: ["key"]}}
+      expected = {:ok, %Ttl{key: "key"}}
 
       assert actual == expected
     end
 
     test "rename command" do
       actual = Parser.parse("RENAME oldkey newkey\r\n")
-      expected = {:ok, %Command{fun: :rename, args: ["oldkey", "newkey"]}}
+      expected = {:ok, %Rename{oldkey: "oldkey", newkey: "newkey"}}
 
       assert actual == expected
     end
