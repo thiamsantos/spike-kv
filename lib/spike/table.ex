@@ -1,10 +1,12 @@
 defmodule Spike.Table do
+  alias Spike.Entry
+
   def create do
     :ets.new(:storage, [:protected, read_concurrency: true])
   end
 
   def insert(table, content) do
-    true = :ets.insert(table, content)
+    true = :ets.insert(table, Entry.serialize(content))
     :ok
   end
 
@@ -15,11 +17,11 @@ defmodule Spike.Table do
           :ok = delete(table, key)
           nil
         else
-          {key, value, exp, inserted_at}
+          Entry.parse({key, value, exp, inserted_at})
         end
 
       [{^key, value}] ->
-        {key, value}
+        Entry.parse({key, value})
 
       [] ->
         nil

@@ -2,7 +2,7 @@ defmodule Spike.Storage do
   use GenServer
 
   alias Spike.Command.{Get, Set, Del, Ping, Exists, Ttl, Rename, Getset, Error}
-  alias Spike.Table
+  alias Spike.{VolatileEntry, StableEntry, Table}
 
   def start_link(opts) do
     GenServer.start_link(__MODULE__, [], opts)
@@ -14,12 +14,12 @@ defmodule Spike.Storage do
 
   def handle_call({%Set{key: key, value: value, exp: exp}, now}, _from, table)
       when not is_nil(exp) do
-    :ok = Table.insert(table, {key, value, exp, now})
+    :ok = Table.insert(table, %VolatileEntry{key: key, value: value, exp: exp, inserted_at: now})
     {:reply, :ok, table}
   end
 
   def handle_call({%Set{key: key, value: value}, _now}, _from, table) do
-    :ok = Table.insert(table, {key, value})
+    :ok = Table.insert(table, %StableEntry{key: key, value: value})
     {:reply, :ok, table}
   end
 
@@ -59,7 +59,7 @@ defmodule Spike.Storage do
           nil
       end
 
-    :ok = Table.insert(table, {key, value, exp, now})
+    :ok = Table.insert(table, %VolatileEntry{key: key, value: value, exp: exp, inserted_at: now})
     {:reply, {:ok, old_value}, table}
   end
 
@@ -73,18 +73,18 @@ defmodule Spike.Storage do
           nil
       end
 
-    :ok = Table.insert(table, {key, value})
+    :ok = Table.insert(table, %StableEntry{key: key, value: value})
     {:reply, {:ok, old_value}, table}
   end
 
   def handle_call({%Ttl{key: key}, now}, _from, table) do
     response =
       case Table.lookup(table, key, now) do
-        {^key, _value, exp, inserted_at} ->
+        %VolatileEntry{exp: exp, inserted_at: inserted_at} ->
           ttl = inserted_at + exp - now
           {:ok, ttl}
 
-        {^key, _value} ->
+        %StableEntry{} ->
           {:error, 1}
 
         nil ->
@@ -101,10 +101,10 @@ defmodule Spike.Storage do
   def handle_call({%Rename{oldkey: oldkey, newkey: newkey}, now}, _from, table) do
     response =
       case Table.lookup(table, oldkey, now) do
-        {^oldkey, value, exp, inserted_at} ->
+        %VolatileEntry{value: value, exp: exp, inserted_at: inserted_at} ->
           {newkey, value, exp, inserted_at}
 
-        {^oldkey, value} ->
+        %StableEntry{value: value} ->
           {newkey, value}
 
         nil ->
@@ -116,11 +116,13 @@ defmodule Spike.Storage do
     reply =
       case response do
         {key, value} ->
-          :ok = Table.insert(table, {key, value})
+          :ok = Table.insert(table, %StableEntry{key: key, value: value})
           :ok
 
         {key, value, exp, now} ->
-          :ok = Table.insert(table, {key, value, exp, now})
+          :ok =
+            Table.insert(table, %VolatileEntry{key: key, value: value, exp: exp, inserted_at: now})
+
           :ok
 
         :error ->
@@ -136,10 +138,10 @@ defmodule Spike.Storage do
 
   defp find(table, key, now) do
     case Table.lookup(table, key, now) do
-      {^key, value, exp, inserted_at} ->
+      %VolatileEntry{value: value} ->
         {:ok, value}
 
-      {^key, value} ->
+      %StableEntry{value: value} ->
         {:ok, value}
 
       nil ->
