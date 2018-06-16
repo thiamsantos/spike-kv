@@ -22,10 +22,10 @@ defmodule Spike.Storage do
   def handle_call({:get, now, key}, _from, table) do
     case find(table, key, now) do
       {:ok, value} ->
-        {:reply, value, table}
+        {:reply, {:ok, value}, table}
 
       :error ->
-        {:reply, nil, table}
+        {:reply, {:ok, nil}, table}
     end
   end
 
@@ -37,10 +37,10 @@ defmodule Spike.Storage do
   def handle_call({:exists?, now, key}, _from, table) do
     case find(table, key, now) do
       {:ok, _value} ->
-        {:reply, true, table}
+        {:reply, {:ok, true}, table}
 
       :error ->
-        {:reply, false, table}
+        {:reply, {:ok, false}, table}
     end
   end
 
@@ -55,7 +55,7 @@ defmodule Spike.Storage do
       end
 
     true = :ets.insert(table, {key, value})
-    {:reply, old_value, table}
+    {:reply, {:ok, old_value}, table}
   end
 
   def handle_call({:getset, now, key, value, expiration}, _from, table) do
@@ -69,7 +69,7 @@ defmodule Spike.Storage do
       end
 
     true = :ets.insert(table, {key, value, expiration, now})
-    {:reply, old_value, table}
+    {:reply, {:ok, old_value}, table}
   end
 
   def handle_call({:ttl, now, key}, _from, table) do

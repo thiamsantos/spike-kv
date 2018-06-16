@@ -10,13 +10,13 @@ end
 
 defimpl Spike.Command, for: Spike.Command.Exists do
   def run(%Spike.Command.Exists{storage: storage, current_time: current_time, key: key}) do
-    {:ok, GenServer.call(storage, {:exists?, current_time, key})}
+    GenServer.call(storage, {:exists?, current_time, key})
   end
 end
 
 defimpl Spike.Command, for: Spike.Command.Get do
   def run(%Spike.Command.Get{storage: storage, current_time: current_time, key: key}) do
-    {:ok, GenServer.call(storage, {:get, current_time, key})}
+    GenServer.call(storage, {:get, current_time, key})
   end
 end
 
@@ -55,7 +55,7 @@ defimpl Spike.Command, for: Spike.Command.Getset do
         key: key,
         value: value
       }) do
-    {:ok, GenServer.call(storage, {:getset, current_time, key, value})}
+    GenServer.call(storage, {:getset, current_time, key, value})
   end
 end
 
