@@ -2,23 +2,24 @@ defmodule Spike.Storage do
   use GenServer
 
   alias Spike.Command.{Get, Set, Del, Ping, Exists, Ttl, Rename, Getset, Error}
+  alias Spike.Table
 
   def start_link(opts) do
     GenServer.start_link(__MODULE__, [], opts)
   end
 
   def init(_) do
-    {:ok, :ets.new(:storage, [:protected, read_concurrency: true])}
+    {:ok, Table.create()}
   end
 
   def handle_call({%Set{key: key, value: value, exp: exp}, now}, _from, table)
       when not is_nil(exp) do
-    true = :ets.insert(table, {key, value, exp, now})
+    :ok = Table.insert(table, {key, value, exp, now})
     {:reply, :ok, table}
   end
 
   def handle_call({%Set{key: key, value: value}, _now}, _from, table) do
-    true = :ets.insert(table, {key, value})
+    :ok = Table.insert(table, {key, value})
     {:reply, :ok, table}
   end
 
@@ -33,7 +34,7 @@ defmodule Spike.Storage do
   end
 
   def handle_call({%Del{key: key}, _now}, _from, table) do
-    true = :ets.delete(table, key)
+    :ok = Table.delete(table, key)
     {:reply, :ok, table}
   end
 
@@ -58,7 +59,7 @@ defmodule Spike.Storage do
           nil
       end
 
-    true = :ets.insert(table, {key, value, exp, now})
+    :ok = Table.insert(table, {key, value, exp, now})
     {:reply, {:ok, old_value}, table}
   end
 
@@ -72,20 +73,21 @@ defmodule Spike.Storage do
           nil
       end
 
-    true = :ets.insert(table, {key, value})
+    :ok = Table.insert(table, {key, value})
     {:reply, {:ok, old_value}, table}
   end
 
   def handle_call({%Ttl{key: key}, now}, _from, table) do
     response =
-      case :ets.lookup(table, key) do
-        [{^key, _value, exp, inserted_at}] ->
-          lazy_expire_or_return_ttl(table, key, exp, inserted_at, now)
+      case Table.lookup(table, key, now) do
+        {^key, _value, exp, inserted_at} ->
+          ttl = inserted_at + exp - now
+          {:ok, ttl}
 
-        [{^key, _value}] ->
+        {^key, _value} ->
           {:error, 1}
 
-        [] ->
+        nil ->
           {:error, 2}
       end
 
@@ -98,31 +100,27 @@ defmodule Spike.Storage do
 
   def handle_call({%Rename{oldkey: oldkey, newkey: newkey}, now}, _from, table) do
     response =
-      case :ets.lookup(table, oldkey) do
-        [{^oldkey, value, exp, inserted_at}] ->
-          if expired?(now, exp, inserted_at) do
-            :error
-          else
-            {newkey, value, exp, inserted_at}
-          end
+      case Table.lookup(table, oldkey, now) do
+        {^oldkey, value, exp, inserted_at} ->
+          {newkey, value, exp, inserted_at}
 
-        [{^oldkey, value}] ->
+        {^oldkey, value} ->
           {newkey, value}
 
-        [] ->
+        nil ->
           :error
       end
 
-    true = :ets.delete(table, oldkey)
+    :ok = Table.delete(table, oldkey)
 
     reply =
       case response do
         {key, value} ->
-          true = :ets.insert(table, {key, value})
+          :ok = Table.insert(table, {key, value})
           :ok
 
         {key, value, exp, now} ->
-          true = :ets.insert(table, {key, value, exp, now})
+          :ok = Table.insert(table, {key, value, exp, now})
           :ok
 
         :error ->
@@ -137,38 +135,15 @@ defmodule Spike.Storage do
   end
 
   defp find(table, key, now) do
-    case :ets.lookup(table, key) do
-      [{^key, value, exp, inserted_at}] ->
-        lazy_expire_or_return_value(table, key, value, exp, inserted_at, now)
-
-      [{^key, value}] ->
+    case Table.lookup(table, key, now) do
+      {^key, value, exp, inserted_at} ->
         {:ok, value}
 
-      [] ->
+      {^key, value} ->
+        {:ok, value}
+
+      nil ->
         :error
     end
-  end
-
-  defp lazy_expire_or_return_value(table, key, value, exp, inserted_at, now) do
-    if expired?(now, exp, inserted_at) do
-      true = :ets.delete(table, key)
-      :error
-    else
-      {:ok, value}
-    end
-  end
-
-  defp lazy_expire_or_return_ttl(table, key, exp, inserted_at, now) do
-    if expired?(now, exp, inserted_at) do
-      true = :ets.delete(table, key)
-      {:error, 2}
-    else
-      ttl = inserted_at + exp - now
-      {:ok, ttl}
-    end
-  end
-
-  defp expired?(now, exp, inserted_at) do
-    now >= exp + inserted_at
   end
 end
