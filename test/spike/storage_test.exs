@@ -1,7 +1,8 @@
 defmodule Spike.StorageTest do
   use ExUnit.Case, async: true
 
-  alias Spike.{Storage, Client}
+  alias Spike.{Storage, Command, Request}
+  alias Spike.Command.{Get, Set, Del, Exists, Ping, Getset, Rename, Ttl}
 
   setup do
     storage = start_supervised!(Storage)
@@ -13,99 +14,105 @@ defmodule Spike.StorageTest do
     %{now: now}
   end
 
-  test "stores values by key", %{storage: storage, now: now} do
-    assert Client.get(storage, now, "milk") == {:ok, nil}
+  defp run(storage, now, command) do
+    %Request{storage: storage, now: now, command: command}
+    |> Command.run()
+  end
 
-    assert :ok = Client.set(storage, now, "milk", 3)
-    assert Client.get(storage, now, "milk") == {:ok, 3}
+  test "stores values by key", %{storage: storage, now: now} do
+    assert run(storage, now, %Get{key: "milk"}) == {:ok, nil}
+
+    assert :ok = run(storage, now, %Set{key: "milk", value: 3})
+
+    assert run(storage, now, %Get{key: "milk"}) == {:ok, 3}
   end
 
   test "values with exp time", %{storage: storage, now: now} do
-    assert Client.get(storage, now, "milk") == {:ok, nil}
+    assert run(storage, now, %Get{key: "milk"}) == {:ok, nil}
 
-    assert :ok = Client.set(storage, now, "milk", 3, 10)
-    assert Client.get(storage, now + 9, "milk") == {:ok, 3}
+    assert :ok = run(storage, now, %Set{key: "milk", value: 3, exp: 10})
+    assert run(storage, now + 9, %Get{key: "milk"}) == {:ok, 3}
 
-    assert Client.get(storage, now + 10, "milk") == {:ok, nil}
+    assert run(storage, now + 10, %Get{key: "milk"}) == {:ok, nil}
   end
 
   test "delete keys", %{storage: storage, now: now} do
-    assert Client.get(storage, now, "milk") == {:ok, nil}
+    assert run(storage, now, %Get{key: "milk"}) == {:ok, nil}
 
-    assert :ok = Client.set(storage, now, "milk", 3)
-    assert Client.get(storage, now, "milk") == {:ok, 3}
+    assert :ok = run(storage, now, %Set{key: "milk", value: 3})
+    assert run(storage, now, %Get{key: "milk"}) == {:ok, 3}
 
-    assert :ok = Client.del(storage, now, "milk")
+    assert :ok = run(storage, now, %Del{key: "milk"})
 
-    assert Client.get(storage, now, "milk") == {:ok, nil}
+    assert run(storage, now, %Get{key: "milk"}) == {:ok, nil}
   end
 
   test "ping", %{storage: storage, now: now} do
-    assert Client.ping(storage, now, "") == {:ok, "PONG"}
-    assert Client.ping(storage, now, "hello world") == {:ok, "hello world"}
+    assert run(storage, now, %Ping{message: "PONG"}) == {:ok, "PONG"}
+    assert run(storage, now, %Ping{message: "hello world"}) == {:ok, "hello world"}
   end
 
   test "exists", %{storage: storage, now: now} do
-    assert Client.exists?(storage, now, "milk") == {:ok, false}
+    assert run(storage, now, %Exists{key: "milk"}) == {:ok, false}
 
-    assert :ok = Client.set(storage, now, "milk", 3)
-    assert Client.exists?(storage, now, "milk") == {:ok, true}
+    assert :ok = run(storage, now, %Set{key: "milk", value: 3})
+    assert run(storage, now, %Exists{key: "milk"}) == {:ok, true}
   end
 
   test "exists with exp", %{storage: storage, now: now} do
-    assert Client.exists?(storage, now, "milk") == {:ok, false}
+    assert run(storage, now, %Exists{key: "milk"}) == {:ok, false}
 
-    assert :ok = Client.set(storage, now, "milk", 3, 10)
-    assert Client.exists?(storage, now + 9, "milk") == {:ok, true}
-    assert Client.exists?(storage, now + 10, "milk") == {:ok, false}
+    assert :ok = run(storage, now, %Set{key: "milk", value: 3, exp: 10})
+    assert run(storage, now + 9, %Exists{key: "milk"}) == {:ok, true}
+    assert run(storage, now + 10, %Exists{key: "milk"}) == {:ok, false}
   end
 
   test "getset", %{storage: storage, now: now} do
-    assert Client.get(storage, now, "milk") == {:ok, nil}
+    assert run(storage, now, %Get{key: "milk"}) == {:ok, nil}
 
-    assert :ok = Client.set(storage, now, "milk", 3)
-    assert Client.getset(storage, now, "milk", 4) == {:ok, 3}
-    assert Client.get(storage, now, "milk") == {:ok, 4}
+    assert :ok = run(storage, now, %Set{key: "milk", value: 3})
+    assert run(storage, now, %Getset{key: "milk", value: 4}) == {:ok, 3}
+    assert run(storage, now, %Get{key: "milk"}) == {:ok, 4}
   end
 
   test "getset with exp", %{storage: storage, now: now} do
-    assert Client.get(storage, now, "milk") == {:ok, nil}
+    assert run(storage, now, %Get{key: "milk"}) == {:ok, nil}
 
-    assert :ok = Client.set(storage, now, "milk", 3)
-    assert Client.getset(storage, now, "milk", 4, 10) == {:ok, 3}
-    assert Client.get(storage, now + 9, "milk") == {:ok, 4}
-    assert Client.get(storage, now + 10, "milk") == {:ok, nil}
+    assert :ok = run(storage, now, %Set{key: "milk", value: 3})
+    assert run(storage, now, %Getset{key: "milk", value: 4, exp: 10}) == {:ok, 3}
+    assert run(storage, now + 9, %Get{key: "milk"}) == {:ok, 4}
+    assert run(storage, now + 10, %Get{key: "milk"}) == {:ok, nil}
   end
 
   test "ttl", %{storage: storage, now: now} do
-    assert Client.ttl(storage, now, "milk") == {:error, 2}
+    assert run(storage, now, %Ttl{key: "milk"}) == {:error, 2}
 
-    assert :ok = Client.set(storage, now, "milk", 3, 10)
-    assert Client.ttl(storage, now, "milk") == {:ok, 10}
+    assert :ok = run(storage, now, %Set{key: "milk", value: 3, exp: 10})
+    assert run(storage, now, %Ttl{key: "milk"}) == {:ok, 10}
 
-    assert :ok = Client.set(storage, now, "basket", "eggs")
-    assert Client.ttl(storage, now, "basket") == {:error, 1}
+    assert :ok = run(storage, now, %Set{key: "basket", value: "eggs"})
+    assert run(storage, now, %Ttl{key: "basket"}) == {:error, 1}
   end
 
   test "rename", %{storage: storage, now: now} do
-    assert Client.rename(storage, now, "oldkey", "newkey") == :error
+    assert run(storage, now, %Rename{oldkey: "oldkey", newkey: "newkey"}) == :error
 
-    assert :ok = Client.set(storage, now, "oldkey", 3, 10)
-    assert Client.rename(storage, now, "oldkey", "newkey") == :ok
-    assert Client.ttl(storage, now, "newkey") == {:ok, 10}
-    assert Client.get(storage, now, "newkey") == {:ok, 3}
-    assert Client.exists?(storage, now, "oldkey") == {:ok, false}
+    assert :ok = run(storage, now, %Set{key: "oldkey", value: 3, exp: 10})
+    assert run(storage, now, %Rename{oldkey: "oldkey", newkey: "newkey"}) == :ok
+    assert run(storage, now, %Ttl{key: "newkey"}) == {:ok, 10}
+    assert run(storage, now, %Get{key: "newkey"}) == {:ok, 3}
+    assert run(storage, now, %Exists{key: "oldkey"}) == {:ok, false}
   end
 
   test "rename with exp", %{storage: storage, now: now} do
-    assert :ok = Client.set(storage, now, "oldkey", 3, 10)
-    assert Client.rename(storage, now + 11, "oldkey", "newkey") == :error
+    assert :ok = run(storage, now, %Set{key: "oldkey", value: 3, exp: 10})
+    assert run(storage, now + 11, %Rename{oldkey: "oldkey", newkey: "newkey"}) == :error
   end
 
   test "rename key without exp", %{storage: storage, now: now} do
-    assert :ok = Client.set(storage, now, "oldkey", 3)
-    assert Client.rename(storage, now, "oldkey", "newkey") == :ok
-    assert Client.get(storage, now, "newkey") == {:ok, 3}
-    assert Client.exists?(storage, now, "oldkey") == {:ok, false}
+    assert :ok = run(storage, now, %Set{key: "oldkey", value: 3})
+    assert run(storage, now, %Rename{oldkey: "oldkey", newkey: "newkey"}) == :ok
+    assert run(storage, now, %Get{key: "newkey"}) == {:ok, 3}
+    assert run(storage, now, %Exists{key: "oldkey"}) == {:ok, false}
   end
 end
