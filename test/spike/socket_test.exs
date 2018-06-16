@@ -25,7 +25,7 @@ defmodule Spike.SocketTest do
     assert send_and_recv(socket, "GET eggs\r\n") == ":OK $0\r\n"
   end
 
-  test "server interaction with expiration", %{socket: socket} do
+  test "server interaction with exp", %{socket: socket} do
     expect(CurrentTimeMock, :get_timestamp, fn -> 1 end)
     assert send_and_recv(socket, "GET eggs\r\n") == ":OK $0\r\n"
 

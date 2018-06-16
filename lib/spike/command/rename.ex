@@ -1,4 +1,4 @@
 defmodule Spike.Command.Rename do
-  @enforce_keys [:storage, :current_time, :oldkey, :newkey]
-  defstruct [:storage, :current_time, :oldkey, :newkey]
+  @enforce_keys [:oldkey, :newkey]
+  defstruct [:oldkey, :newkey]
 end

@@ -20,7 +20,7 @@ defmodule Spike.StorageTest do
     assert Client.get(storage, now, "milk") == {:ok, 3}
   end
 
-  test "values with expiration time", %{storage: storage, now: now} do
+  test "values with exp time", %{storage: storage, now: now} do
     assert Client.get(storage, now, "milk") == {:ok, nil}
 
     assert :ok = Client.set(storage, now, "milk", 3, 10)
@@ -52,7 +52,7 @@ defmodule Spike.StorageTest do
     assert Client.exists?(storage, now, "milk") == {:ok, true}
   end
 
-  test "exists with expiration", %{storage: storage, now: now} do
+  test "exists with exp", %{storage: storage, now: now} do
     assert Client.exists?(storage, now, "milk") == {:ok, false}
 
     assert :ok = Client.set(storage, now, "milk", 3, 10)
@@ -68,7 +68,7 @@ defmodule Spike.StorageTest do
     assert Client.get(storage, now, "milk") == {:ok, 4}
   end
 
-  test "getset with expiration", %{storage: storage, now: now} do
+  test "getset with exp", %{storage: storage, now: now} do
     assert Client.get(storage, now, "milk") == {:ok, nil}
 
     assert :ok = Client.set(storage, now, "milk", 3)
@@ -97,12 +97,12 @@ defmodule Spike.StorageTest do
     assert Client.exists?(storage, now, "oldkey") == {:ok, false}
   end
 
-  test "rename with expiration", %{storage: storage, now: now} do
+  test "rename with exp", %{storage: storage, now: now} do
     assert :ok = Client.set(storage, now, "oldkey", 3, 10)
     assert Client.rename(storage, now + 11, "oldkey", "newkey") == :error
   end
 
-  test "rename key without expiration", %{storage: storage, now: now} do
+  test "rename key without exp", %{storage: storage, now: now} do
     assert :ok = Client.set(storage, now, "oldkey", 3)
     assert Client.rename(storage, now, "oldkey", "newkey") == :ok
     assert Client.get(storage, now, "newkey") == {:ok, 3}

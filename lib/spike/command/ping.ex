@@ -1,4 +1,4 @@
 defmodule Spike.Command.Ping do
-  @enforce_keys [:storage, :message]
-  defstruct [:storage, :message]
+  @enforce_keys [:message]
+  defstruct [:message]
 end

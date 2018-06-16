@@ -1,77 +1,64 @@
 defmodule Spike.Parser do
-  alias Spike.Storage
   alias Spike.Command.{Get, Set, Del, Ping, Exists, Ttl, Rename, Getset}
-
-  @current_time Application.get_env(:spike, :current_time)
 
   def parse(command) do
     case String.split(command) do
       ["GET", key] ->
-        {:ok, %Get{storage: Storage, current_time: @current_time.get_timestamp(), key: key}}
+        {:ok, %Get{key: key}}
 
       ["SET", key, value] ->
         {:ok,
          %Set{
-           storage: Storage,
-           current_time: @current_time.get_timestamp(),
            key: key,
            value: value
          }}
 
-      ["SET", key, value, expiration] ->
-        parse_command_with_expiration(
+      ["SET", key, value, exp] ->
+        parse_command_with_exp(
           %Set{
-            storage: Storage,
-            current_time: @current_time.get_timestamp(),
             key: key,
             value: value
           },
-          expiration
+          exp
         )
 
       ["GETSET", key, value] ->
         {:ok,
          %Getset{
-           storage: Storage,
-           current_time: @current_time.get_timestamp(),
            key: key,
            value: value
          }}
 
-      ["GETSET", key, value, expiration] ->
-        parse_command_with_expiration(
+      ["GETSET", key, value, exp] ->
+        parse_command_with_exp(
           %Getset{
-            storage: Storage,
-            current_time: @current_time.get_timestamp(),
             key: key,
             value: value
           },
-          expiration
+          exp
         )
 
       ["DEL", key] ->
-        {:ok, %Del{storage: Storage, current_time: @current_time.get_timestamp(), key: key}}
+        {:ok, %Del{key: key}}
 
       ["PING" | message] ->
         case message do
           [] ->
-            {:ok, %Ping{storage: Storage, message: "PONG"}}
+            {:ok, %Ping{message: "PONG"}}
 
           _ ->
-            {:ok, %Ping{storage: Storage, message: Enum.join(message, " ")}}
+            {:ok, %Ping{message: Enum.join(message, " ")}}
         end
 
       ["EXISTS", key] ->
-        {:ok, %Exists{storage: Storage, current_time: @current_time.get_timestamp(), key: key}}
+        {:ok, %Exists{key: key}}
 
       ["TTL", key] ->
-        {:ok, %Ttl{storage: Storage, current_time: @current_time.get_timestamp(), key: key}}
+        {:ok, %Ttl{key: key}}
 
       ["RENAME", oldkey, newkey] ->
         {:ok,
          %Rename{
-           storage: Storage,
-           current_time: @current_time.get_timestamp(),
            oldkey: oldkey,
            newkey: newkey
          }}
@@ -81,19 +68,19 @@ defmodule Spike.Parser do
     end
   end
 
-  defp parse_command_with_expiration(command, expiration) do
-    case parse_expiration(expiration) do
-      expiration_time when is_integer(expiration_time) ->
-        {:ok, Map.put(command, :expiration, expiration_time)}
+  defp parse_command_with_exp(command, exp) do
+    case parse_exp(exp) do
+      exp_time when is_integer(exp_time) ->
+        {:ok, Map.put(command, :exp, exp_time)}
 
       :error ->
         {:error, :unknown_command}
     end
   end
 
-  defp parse_expiration(expiration) do
-    if Regex.match?(~r/^\d+$/, expiration) do
-      String.to_integer(expiration)
+  defp parse_exp(exp) do
+    if Regex.match?(~r/^\d+$/, exp) do
+      String.to_integer(exp)
     else
       :error
     end

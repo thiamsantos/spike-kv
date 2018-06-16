@@ -12,9 +12,9 @@ defmodule Spike.ParserTest do
       assert actual == expected
     end
 
-    test "set command with expiration time" do
+    test "set command with exp time" do
       actual = Parser.parse("SET key value 10\r\n")
-      expected = {:ok, %Set{key: "key", value: "value", expiration: 10}}
+      expected = {:ok, %Set{key: "key", value: "value", exp: 10}}
 
       assert actual == expected
     end
@@ -89,9 +89,9 @@ defmodule Spike.ParserTest do
       assert actual == expected
     end
 
-    test "getset command with expiration" do
+    test "getset command with exp" do
       actual = Parser.parse("GETSET key value 15\r\n")
-      expected = {:ok, %Getset{key: "key", value: "value", expiration: 15}}
+      expected = {:ok, %Getset{key: "key", value: "value", exp: 15}}
 
       assert actual == expected
     end

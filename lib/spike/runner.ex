@@ -1,10 +1,10 @@
 defmodule Spike.Runner do
-  alias Spike.{Command, Storage, Response}
-
-  @current_time Application.get_env(:spike, :current_time)
+  alias Spike.{Command, Request, Response}
 
   def run({:ok, command}) do
-    Command.run(command)
+    command
+    |> Request.create()
+    |> Command.run()
     |> Response.parse()
   end
 
