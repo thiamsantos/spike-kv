@@ -1,7 +1,7 @@
 defmodule Spike.Storage do
   use GenServer
 
-  alias Spike.Command.{Get, Set, Del, Ping, Exists, Ttl, Rename, Getset}
+  alias Spike.Command.{Get, Set, Del, Ping, Exists, Ttl, Rename, Getset, Error}
 
   def start_link(opts) do
     GenServer.start_link(__MODULE__, [], opts)
@@ -130,6 +130,10 @@ defmodule Spike.Storage do
       end
 
     {:reply, reply, table}
+  end
+
+  def handle_call({%Error{message: message}, _now}, _from, table) do
+    {:reply, {:error, message}, table}
   end
 
   defp find(table, key, now) do

@@ -1,6 +1,6 @@
 defmodule Spike.Server do
   require Logger
-  alias Spike.{Parser, Runner, ServerSupervisor}
+  alias Spike.{Parser, Request, Command, Response, ServerSupervisor}
 
   def serve(socket) do
     Logger.info("Starting connection with PID #{inspect(self())}")
@@ -8,7 +8,9 @@ defmodule Spike.Server do
     socket
     |> read_line()
     |> Parser.parse()
-    |> Runner.run()
+    |> Request.create()
+    |> Command.run()
+    |> Response.parse()
     |> write_line(socket)
 
     serve(socket)

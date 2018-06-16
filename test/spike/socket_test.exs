@@ -79,6 +79,8 @@ defmodule Spike.SocketTest do
   end
 
   test "unknown command", %{socket: socket} do
+    stub(CurrentTimeMock, :get_timestamp, fn -> 1 end)
+
     assert send_and_recv(socket, "SET key\r\n") == ":ERROR :UNKNOWN_COMMAND\r\n"
   end
 
