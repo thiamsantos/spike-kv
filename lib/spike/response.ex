@@ -24,6 +24,12 @@ defmodule Spike.Response do
     |> success_response()
   end
 
+  defp handle_storage_response({:ok, value}) when is_list(value) do
+    value
+    |> list_reply()
+    |> success_response()
+  end
+
   defp handle_storage_response({:ok, value}) do
     value
     |> parse_text_message()
@@ -61,6 +67,16 @@ defmodule Spike.Response do
 
   defp integer_reply(num) do
     "+#{num}"
+  end
+
+  def list_reply(list) do
+    "$#{length(list)} #{parse_list(list)}"
+  end
+
+  defp parse_list(list) do
+    list
+    |> Enum.map(fn item -> ":#{item}" end)
+    |> Enum.join(" ")
   end
 
   defp tokenize_message(message), do: ":" <> message

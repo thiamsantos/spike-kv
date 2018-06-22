@@ -2,7 +2,7 @@ defmodule Spike.ParserTest do
   use ExUnit.Case, async: true
 
   alias Spike.Parser
-  alias Spike.Command.{Get, Set, Del, Exists, Ping, Getset, Rename, Ttl, Error}
+  alias Spike.Command.{Get, Set, Del, Exists, Ping, Getset, Rename, Ttl, Error, Keys}
 
   describe "parse/1" do
     test "set commands" do
@@ -106,6 +106,13 @@ defmodule Spike.ParserTest do
     test "rename command" do
       actual = Parser.parse("RENAME oldkey newkey\r\n")
       expected = %Rename{oldkey: "oldkey", newkey: "newkey"}
+
+      assert actual == expected
+    end
+
+    test "keys command" do
+      actual = Parser.parse("KEYS\r\n")
+      expected = %Keys{}
 
       assert actual == expected
     end

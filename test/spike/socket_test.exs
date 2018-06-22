@@ -1,5 +1,5 @@
 defmodule Spike.SocketTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
 
   import Mox
   alias Spike.CurrentTimeMock
@@ -7,6 +7,8 @@ defmodule Spike.SocketTest do
   @moduletag :capture_log
 
   setup do
+    :ok = Application.stop(:spike)
+    {:ok, _} = Application.ensure_all_started(:spike)
     opts = [:binary, packet: :line, active: false]
     {:ok, socket} = :gen_tcp.connect('localhost', 4040, opts)
     %{socket: socket}
@@ -76,6 +78,14 @@ defmodule Spike.SocketTest do
     assert send_and_recv(socket, "TTL newkey\r\n") == ":OK +10\r\n"
     assert send_and_recv(socket, "GET newkey\r\n") == ":OK $5 value\r\n"
     assert send_and_recv(socket, "EXISTS oldkey\r\n") == ":OK =0\r\n"
+  end
+
+  test "keys", %{socket: socket} do
+    stub(CurrentTimeMock, :get_timestamp, fn -> 1 end)
+    assert send_and_recv(socket, "SET key1 value\r\n") == ":OK\r\n"
+    assert send_and_recv(socket, "SET key2 value 10\r\n") == ":OK\r\n"
+
+    assert send_and_recv(socket, "KEYS\r\n") == ":OK $2 :key1 :key2\r\n"
   end
 
   test "unknown command", %{socket: socket} do

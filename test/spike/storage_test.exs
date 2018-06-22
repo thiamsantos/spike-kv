@@ -2,7 +2,7 @@ defmodule Spike.StorageTest do
   use ExUnit.Case, async: true
 
   alias Spike.{Storage, Command, Request}
-  alias Spike.Command.{Get, Set, Del, Exists, Ping, Getset, Rename, Ttl}
+  alias Spike.Command.{Get, Set, Del, Exists, Ping, Getset, Rename, Ttl, Keys}
 
   setup do
     storage = start_supervised!(Storage)
@@ -114,5 +114,11 @@ defmodule Spike.StorageTest do
     assert run(storage, now, %Rename{oldkey: "oldkey", newkey: "newkey"}) == :ok
     assert run(storage, now, %Get{key: "newkey"}) == {:ok, 3}
     assert run(storage, now, %Exists{key: "oldkey"}) == {:ok, false}
+  end
+
+  test "keys", %{storage: storage, now: now} do
+    assert :ok = run(storage, now, %Set{key: "key1", value: 3})
+    assert :ok = run(storage, now, %Set{key: "key2", value: 3, exp: 30})
+    assert run(storage, now, %Keys{}) == {:ok, ["key1", "key2"]}
   end
 end

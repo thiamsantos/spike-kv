@@ -33,6 +33,10 @@ defmodule Spike.Table do
     :ok
   end
 
+  def keys(table) do
+    :ets.select(table, [{{:"$1", :_}, [], [:"$1"]}, {{:"$1", :_, :_, :_}, [], [:"$1"]}])
+  end
+
   defp expired?(now, exp, inserted_at) do
     now >= exp + inserted_at
   end

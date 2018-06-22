@@ -1,5 +1,5 @@
 defmodule Spike.Parser do
-  alias Spike.Command.{Get, Set, Del, Ping, Exists, Ttl, Rename, Getset, Error}
+  alias Spike.Command.{Get, Set, Del, Ping, Exists, Ttl, Rename, Getset, Error, Keys}
 
   def parse(command) do
     case String.split(command) do
@@ -38,6 +38,9 @@ defmodule Spike.Parser do
 
       ["RENAME", oldkey, newkey] ->
         %Rename{oldkey: oldkey, newkey: newkey}
+
+      ["KEYS"] ->
+        %Keys{}
 
       _ ->
         %Error{message: :unknown_command}
