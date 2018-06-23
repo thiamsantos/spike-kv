@@ -3,7 +3,7 @@ defmodule Spike.Storage do
 
   import Spike.Entry, only: [is_entry: 1]
 
-  alias Spike.Command.{Get, Set, Del, Ping, Exists, Ttl, Rename, Getset, Error, Keys}
+  alias Spike.Command.{Get, Set, Del, Ping, Exists, Ttl, Rename, Getset, Error, Keys, Flush}
   alias Spike.{VolatileEntry, StableEntry, Table, Entry}
 
   def start_link(opts) do
@@ -111,5 +111,10 @@ defmodule Spike.Storage do
   def handle_call({%Keys{}, _now}, _from, table) do
     keys = Table.keys(table)
     {:reply, {:ok, keys}, table}
+  end
+
+  def handle_call({%Flush{}, _now}, _from, table) do
+    keys = Table.flush(table)
+    {:reply, :ok, table}
   end
 end

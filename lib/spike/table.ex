@@ -37,6 +37,11 @@ defmodule Spike.Table do
     :ets.select(table, [{{:"$1", :_}, [], [:"$1"]}, {{:"$1", :_, :_, :_}, [], [:"$1"]}])
   end
 
+  def flush(table) do
+    true = :ets.delete_all_objects(table)
+    :ok
+  end
+
   defp expired?(now, exp, inserted_at) do
     now >= exp + inserted_at
   end

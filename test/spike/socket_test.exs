@@ -88,6 +88,15 @@ defmodule Spike.SocketTest do
     assert send_and_recv(socket, "KEYS\r\n") == ":OK $2 :key1 :key2\r\n"
   end
 
+  test "flush", %{socket: socket} do
+    stub(CurrentTimeMock, :get_timestamp, fn -> 1 end)
+    assert send_and_recv(socket, "SET key1 value\r\n") == ":OK\r\n"
+    assert send_and_recv(socket, "SET key2 value 10\r\n") == ":OK\r\n"
+
+    assert send_and_recv(socket, "FLUSH\r\n") == ":OK\r\n"
+    assert send_and_recv(socket, "KEYS\r\n") == ":OK $0\r\n"
+  end
+
   test "unknown command", %{socket: socket} do
     stub(CurrentTimeMock, :get_timestamp, fn -> 1 end)
 

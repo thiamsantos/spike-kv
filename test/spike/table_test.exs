@@ -26,4 +26,14 @@ defmodule Spike.TableTest do
       assert actual == expected
     end
   end
+
+  describe "flush/1" do
+    test "delete all entries", %{table: table} do
+      assert :ok = Table.insert(table, Entry.create("key", "value"))
+      assert :ok = Table.insert(table, Entry.create("key2", "value", 23, 15))
+
+      assert :ok == Table.flush(table)
+      assert [] == Table.keys(table)
+    end
+  end
 end

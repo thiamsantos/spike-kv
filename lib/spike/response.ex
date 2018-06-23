@@ -69,6 +69,10 @@ defmodule Spike.Response do
     "+#{num}"
   end
 
+  def list_reply([]) do
+    "$0"
+  end
+
   def list_reply(list) do
     "$#{length(list)} #{parse_list(list)}"
   end
