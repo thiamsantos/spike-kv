@@ -2,33 +2,30 @@ defmodule Spike.Parser do
   alias Spike.Command.{Get, Set, Del, Ping, Exists, Ttl, Rename, Getset, Error, Keys}
 
   def parse(command) do
-    case String.split(command) do
+    case command do
       ["GET", key] ->
         %Get{key: key}
 
       ["SET", key, value] ->
         %Set{key: key, value: value}
 
-      ["SET", key, value, exp] ->
-        parse_command_with_exp(%Set{key: key, value: value}, exp)
+      ["SET", key, value, exp] when is_integer(exp) ->
+        %Set{key: key, value: value, exp: exp}
 
       ["GETSET", key, value] ->
         %Getset{key: key, value: value}
 
-      ["GETSET", key, value, exp] ->
-        parse_command_with_exp(%Getset{key: key, value: value}, exp)
+      ["GETSET", key, value, exp] when is_integer(exp) ->
+        %Getset{key: key, value: value, exp: exp}
 
       ["DEL", key] ->
         %Del{key: key}
 
-      ["PING" | message] ->
-        case message do
-          [] ->
-            %Ping{message: "PONG"}
+      ["PING"] ->
+        %Ping{message: "PONG"}
 
-          _ ->
-            %Ping{message: Enum.join(message, " ")}
-        end
+      ["PING", message] ->
+        %Ping{message: message}
 
       ["EXISTS", key] ->
         %Exists{key: key}
@@ -44,24 +41,6 @@ defmodule Spike.Parser do
 
       _ ->
         %Error{message: :unknown_command}
-    end
-  end
-
-  defp parse_command_with_exp(command, exp) do
-    case parse_exp(exp) do
-      exp_time when is_integer(exp_time) ->
-        Map.put(command, :exp, exp_time)
-
-      :error ->
-        %Error{message: :unknown_command}
-    end
-  end
-
-  defp parse_exp(exp) do
-    if Regex.match?(~r/^\d+$/, exp) do
-      String.to_integer(exp)
-    else
-      :error
     end
   end
 end

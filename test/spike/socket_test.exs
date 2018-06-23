@@ -22,7 +22,7 @@ defmodule Spike.SocketTest do
 
     assert send_and_recv(socket, "GET eggs\r\n") == ":OK $0\r\n"
     assert send_and_recv(socket, "SET eggs 3\r\n") == ":OK\r\n"
-    assert send_and_recv(socket, "GET eggs\r\n") == ":OK $1 3\r\n"
+    assert send_and_recv(socket, "GET eggs\r\n") == ":OK +3\r\n"
     assert send_and_recv(socket, "DEL eggs\r\n") == ":OK\r\n"
     assert send_and_recv(socket, "GET eggs\r\n") == ":OK $0\r\n"
   end
@@ -35,7 +35,7 @@ defmodule Spike.SocketTest do
     assert send_and_recv(socket, "SET eggs 3 10\r\n") == ":OK\r\n"
 
     expect(CurrentTimeMock, :get_timestamp, fn -> 10 end)
-    assert send_and_recv(socket, "GET eggs\r\n") == ":OK $1 3\r\n"
+    assert send_and_recv(socket, "GET eggs\r\n") == ":OK +3\r\n"
 
     expect(CurrentTimeMock, :get_timestamp, fn -> 11 end)
     assert send_and_recv(socket, "GET eggs\r\n") == ":OK $0\r\n"
@@ -45,7 +45,7 @@ defmodule Spike.SocketTest do
     stub(Spike.CurrentTimeMock, :get_timestamp, fn -> 1 end)
 
     assert send_and_recv(socket, "PING\r\n") == ":OK $4 PONG\r\n"
-    assert send_and_recv(socket, "PING hello world\r\n") == ":OK $11 hello world\r\n"
+    assert send_and_recv(socket, ~s(PING "hello world"\r\n)) == ":OK $11 hello world\r\n"
   end
 
   test "exists", %{socket: socket} do

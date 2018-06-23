@@ -1,120 +1,126 @@
-defmodule Spike.ParserTest do
+defmodule Spike.InterpreterTest do
   use ExUnit.Case, async: true
 
-  alias Spike.Parser
+  alias Spike.{Parser, Lexer}
   alias Spike.Command.{Get, Set, Del, Exists, Ping, Getset, Rename, Ttl, Error, Keys}
 
   describe "parse/1" do
     test "set commands" do
-      actual = Parser.parse("SET key value\r\n")
+      actual = run("SET key value\r\n")
       expected = %Set{key: "key", value: "value"}
 
       assert actual == expected
     end
 
     test "set command with exp time" do
-      actual = Parser.parse("SET key value 10\r\n")
+      actual = run("SET key value 10\r\n")
       expected = %Set{key: "key", value: "value", exp: 10}
 
       assert actual == expected
     end
 
     test "set command with invalid time" do
-      actual = Parser.parse("SET key value invalid_time\r\n")
+      actual = run("SET key value invalid_time\r\n")
       expected = %Error{message: :unknown_command}
 
       assert actual == expected
     end
 
     test "get commands" do
-      actual = Parser.parse("GET key\r\n")
+      actual = run("GET key\r\n")
       expected = %Get{key: "key"}
 
       assert actual == expected
     end
 
     test "lf line breaks" do
-      actual = Parser.parse("GET key\n")
+      actual = run("GET key\n")
       expected = %Get{key: "key"}
 
       assert actual == expected
     end
 
     test "unknown command if missing arguments" do
-      actual = Parser.parse("SET key\r\n")
+      actual = run("SET key\r\n")
       expected = %Error{message: :unknown_command}
 
       assert actual == expected
     end
 
     test "del commands" do
-      actual = Parser.parse("DEL key\r\n")
+      actual = run("DEL key\r\n")
       expected = %Del{key: "key"}
 
       assert actual == expected
     end
 
     test "ping commmand" do
-      actual = Parser.parse("PING something\r\n")
+      actual = run("PING something\r\n")
       expected = %Ping{message: "something"}
 
       assert actual == expected
     end
 
     test "ping without arguments" do
-      actual = Parser.parse("PING\r\n")
+      actual = run("PING\r\n")
       expected = %Ping{message: "PONG"}
 
       assert actual == expected
     end
 
     test "ping with more than one argument" do
-      actual = Parser.parse("PING hello world\r\n")
+      actual = run(~s(PING "hello world"\r\n))
       expected = %Ping{message: "hello world"}
 
       assert actual == expected
     end
 
     test "exists command" do
-      actual = Parser.parse("EXISTS hello\r\n")
+      actual = run("EXISTS hello\r\n")
       expected = %Exists{key: "hello"}
 
       assert actual == expected
     end
 
     test "getset command" do
-      actual = Parser.parse("GETSET key value\r\n")
+      actual = run("GETSET key value\r\n")
       expected = %Getset{key: "key", value: "value"}
 
       assert actual == expected
     end
 
     test "getset command with exp" do
-      actual = Parser.parse("GETSET key value 15\r\n")
+      actual = run("GETSET key value 15\r\n")
       expected = %Getset{key: "key", value: "value", exp: 15}
 
       assert actual == expected
     end
 
     test "ttl command" do
-      actual = Parser.parse("TTL key\r\n")
+      actual = run("TTL key\r\n")
       expected = %Ttl{key: "key"}
 
       assert actual == expected
     end
 
     test "rename command" do
-      actual = Parser.parse("RENAME oldkey newkey\r\n")
+      actual = run("RENAME oldkey newkey\r\n")
       expected = %Rename{oldkey: "oldkey", newkey: "newkey"}
 
       assert actual == expected
     end
 
     test "keys command" do
-      actual = Parser.parse("KEYS\r\n")
+      actual = run("KEYS\r\n")
       expected = %Keys{}
 
       assert actual == expected
     end
+  end
+
+  defp run(command) do
+    command
+    |> Lexer.run()
+    |> Parser.parse()
   end
 end
