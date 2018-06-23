@@ -1,7 +1,6 @@
 defmodule Spike.Response do
-  def parse({:error, token}) when is_atom(token) do
-    token
-    |> error_token()
+  def parse({:error, :unknown_command}) do
+    ":UNKNOWN_COMMAND"
     |> error_response()
     |> put_line_breaks()
   end
