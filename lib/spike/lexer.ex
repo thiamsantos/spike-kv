@@ -3,55 +3,64 @@ defmodule Spike.Lexer do
 
   def run(command) do
     command
+    |> cleanup()
+    |> analyze()
+  end
+
+  defp cleanup(command) do
+    command
     |> String.trim()
     |> String.graphemes()
     |> Enum.with_index()
-    |> parse_command()
   end
 
-  defp parse_command(chars) do
-    parse_command(chars, [], List.first(chars), %EmptyBag{})
+  defp analyze(chars) do
+    analyze(chars, [], List.first(chars), %EmptyBag{})
   end
 
-  defp parse_command(_chars, acc, nil, %EmptyBag{}) do
+  defp analyze(_chars, acc, nil, %EmptyBag{}) do
     Enum.reverse(acc)
   end
 
-  defp parse_command(chars, acc, nil, %OrdinaryBag{content: content}) do
-    parse_command(chars, [get_possible_integer_arg(content) | acc], nil, %EmptyBag{})
+  defp analyze(chars, acc, nil, %OrdinaryBag{content: content}) do
+    analyze(chars, [get_possible_integer_arg(content) | acc], nil, %EmptyBag{})
   end
 
-  defp parse_command(chars, acc, {" ", index}, %EmptyBag{} = bag) do
-    parse_command(chars, acc, Enum.at(chars, index + 1), bag)
+  defp analyze(chars, acc, {" ", index}, %EmptyBag{} = bag) do
+    analyze(chars, acc, next_item(chars, index), bag)
   end
 
-  defp parse_command(chars, acc, {"\"", index}, %EmptyBag{}) do
-    parse_command(chars, acc, Enum.at(chars, index + 1), %StringBag{})
+  defp analyze(chars, acc, {"\"", index}, %EmptyBag{}) do
+    analyze(chars, acc, next_item(chars, index), %StringBag{})
   end
 
-  defp parse_command(chars, acc, {item, index}, %EmptyBag{}) do
-    parse_command(chars, acc, Enum.at(chars, index + 1), %OrdinaryBag{content: item})
+  defp analyze(chars, acc, {item, index}, %EmptyBag{}) do
+    analyze(chars, acc, next_item(chars, index), %OrdinaryBag{content: item})
   end
 
-  defp parse_command(chars, acc, {"\"", index}, %StringBag{content: content}) do
-    parse_command(chars, [content | acc], Enum.at(chars, index + 1), %EmptyBag{})
+  defp analyze(chars, acc, {"\"", index}, %StringBag{content: content}) do
+    analyze(chars, [content | acc], next_item(chars, index), %EmptyBag{})
   end
 
-  defp parse_command(chars, acc, {item, index}, %StringBag{content: content}) do
-    parse_command(chars, acc, Enum.at(chars, index + 1), %StringBag{content: content <> item})
+  defp analyze(chars, acc, {item, index}, %StringBag{content: content}) do
+    analyze(chars, acc, next_item(chars, index), %StringBag{content: content <> item})
   end
 
-  defp parse_command(chars, acc, {" ", index}, %OrdinaryBag{content: content}) do
-    parse_command(
+  defp analyze(chars, acc, {" ", index}, %OrdinaryBag{content: content}) do
+    analyze(
       chars,
       [get_possible_integer_arg(content) | acc],
-      Enum.at(chars, index + 1),
+      next_item(chars, index),
       %EmptyBag{}
     )
   end
 
-  defp parse_command(chars, acc, {item, index}, %OrdinaryBag{content: content}) do
-    parse_command(chars, acc, Enum.at(chars, index + 1), %OrdinaryBag{content: content <> item})
+  defp analyze(chars, acc, {item, index}, %OrdinaryBag{content: content}) do
+    analyze(chars, acc, Enum.at(chars, index + 1), %OrdinaryBag{content: content <> item})
+  end
+
+  defp next_item(chars, index) do
+    Enum.at(chars, index + 1)
   end
 
   defp get_possible_integer_arg(arg) do
