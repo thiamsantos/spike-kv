@@ -35,6 +35,9 @@ GET cool_key
 - `PING`. Ex: `PING hello world`
 - `EXISTS`. Ex: `EXISTS key`
 
+## Special Thanks
+  * [@arasatasaygin](https://github.com/arasatasaygin) For the Spike logo.
+
 ## License
 
 [Apache License, Version 2.0](LICENSE) © [Thiago Santos](https://github.com/thiamsantos)
