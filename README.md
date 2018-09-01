@@ -1,8 +1,6 @@
-# Spike
+![spike](https://cdn.rawgit.com/thiamsantos/spike/bfadfc8a/logo.svg)
 
 [![Build Status](https://travis-ci.com/thiamsantos/spike.svg?branch=master)](https://travis-ci.com/thiamsantos/spike)
-
-> Key-value database powered by elixir.
 
 ## Usage
 
