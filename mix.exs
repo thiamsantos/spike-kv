@@ -21,7 +21,8 @@ defmodule Spike.MixProject do
 
   defp deps do
     [
-      {:mox, "~> 0.3.2", only: :test}
+      {:mox, "~> 0.3.2", only: :test},
+      {:nimble_parsec, "~> 0.5.0"}
     ]
   end
 
