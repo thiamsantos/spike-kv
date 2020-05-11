@@ -1,4 +1,4 @@
-![spike](https://cdn.rawgit.com/thiamsantos/spike/bfadfc8a/logo.svg)
+# Spike kv
 
 [![Build Status](https://travis-ci.com/thiamsantos/spike.svg?branch=master)](https://travis-ci.com/thiamsantos/spike)
 
@@ -32,9 +32,6 @@ GET cool_key
 - `DEL`. Ex: `DEL key`
 - `PING`. Ex: `PING hello world`
 - `EXISTS`. Ex: `EXISTS key`
-
-## Special Thanks
-  * [@arasatasaygin](https://github.com/arasatasaygin) For the Spike logo.
 
 ## License
 
